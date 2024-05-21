@@ -1,16 +1,18 @@
 const jwt = require('jsonwebtoken');
 
-const authenticateToken = (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-
-  if (!token) return res.sendStatus(403);
+const authenticateTokenForSSE = (req, res, next) => {
+  const token = req.query.token;
+  console.log("Received token:", token); // Log received token for debugging
+  if (!token) return res.sendStatus(401);
 
   jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-    if (err) return res.sendStatus(403);
+    if (err) {
+      console.error('Token verification error:', err); // Log verification errors
+      return res.sendStatus(403);
+    }
     req.user = user;
     next();
   });
 };
 
-module.exports = { authenticateToken };
+module.exports = { authenticateTokenForSSE };

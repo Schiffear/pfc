@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getMatches, createMatch } from '../services/api';
+import { getMatches, createMatch, subscribeToMatches } from '../services/api';
 
 const MatchListPage = () => {
   const [matches, setMatches] = useState([]);
@@ -20,16 +20,19 @@ const MatchListPage = () => {
 
     fetchMatches();
 
-    const interval = setInterval(fetchMatches, 5000);
+    const unsubscribe = subscribeToMatches((event) => {
+      if (event.type === 'MATCH_CREATED' || event.type === 'MATCH_UPDATED') {
+        fetchMatches();
+      }
+    });
 
-    return () => clearInterval(interval);
+    return () => unsubscribe();
   }, []);
 
   const handleCreateMatch = async () => {
     try {
-      await createMatch();
-      const data = await getMatches();
-      setMatches(data);
+      const match = await createMatch();
+      navigate(`/matches/${match._id}`);
     } catch (error) {
       console.error('Error creating match:', error);
       setError(error.message);

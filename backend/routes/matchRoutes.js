@@ -1,14 +1,16 @@
 const express = require('express');
-const { getMatches, getMatchById, createMatch, joinMatch, addTurn, subscribeToMatch } = require('../controllers/matchController');
-const { authenticateToken } = require('../middleware/authMiddleware');
+const { authenticateTokenForSSE } = require('../middleware/authenticateToken');
+const { getMatches, getMatchById, createMatch, deleteMatch, joinMatch, addTurn, subscribeToMatch, subscribeToMatches } = require('../controllers/matchController');
 
 const router = express.Router();
 
-router.get('/matches', authenticateToken, getMatches);
-router.get('/matches/:id', authenticateToken, getMatchById);
-router.post('/matches', authenticateToken, createMatch);
-router.post('/matches/:id/join', authenticateToken, joinMatch);
-router.post('/matches/:id/turns/:idTurn', authenticateToken, addTurn);
-router.get('/matches/:id/subscribe', authenticateToken, subscribeToMatch);
+router.get('/matches', authenticateTokenForSSE, getMatches);
+router.get('/matches/:id', authenticateTokenForSSE, getMatchById);
+router.post('/matches', authenticateTokenForSSE, createMatch);
+router.delete('/matches/:id', authenticateTokenForSSE, deleteMatch);
+router.post('/matches/:id/join', authenticateTokenForSSE, joinMatch);
+router.post('/matches/:id/turns/:idTurn', authenticateTokenForSSE, addTurn);
+router.get('/matches/:id/subscribe', authenticateTokenForSSE, subscribeToMatch);
+router.get('/matches/subscribe', authenticateTokenForSSE, subscribeToMatches);
 
 module.exports = router;
