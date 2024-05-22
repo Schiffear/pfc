@@ -20,11 +20,15 @@ const request = async (url, options = {}) => {
     throw new Error(error);
   }
 
-  return response.json().catch(() => ({ message: 'Accepted' })); // Handle non-JSON responses
+  return response.json().catch(() => ({ message: 'Accepted' }));
 };
 
 export const register = (data) => request('/register', { method: 'POST', body: JSON.stringify(data) });
-export const login = (data) => request('/login', { method: 'POST', body: JSON.stringify(data) });
+export const login = async (data) => {
+  const response = await request('/login', { method: 'POST', body: JSON.stringify(data) });
+  localStorage.setItem('token', response.token);
+  return response;
+};
 export const getMatches = () => request('/matches');
 export const createMatch = () => request('/matches', { method: 'POST' });
 export const getMatchById = (id) => request(`/matches/${id}`);
@@ -40,7 +44,7 @@ export const subscribeToMatch = (id, onMessage) => {
 
   eventSource.onerror = (error) => {
     console.error('EventSource failed:', error);
-    eventSource.close(); // Close the EventSource connection on error
+    eventSource.close();
   };
 
   return () => eventSource.close();
@@ -56,7 +60,7 @@ export const subscribeToMatches = (onMessage) => {
 
   eventSource.onerror = (error) => {
     console.error('EventSource failed:', error);
-    eventSource.close(); // Close the EventSource connection on error
+    eventSource.close();
   };
 
   return () => eventSource.close();

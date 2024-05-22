@@ -1,4 +1,4 @@
-import { jwtDecode } from 'jwt-decode';
+import jwtDecode from 'jwt-decode';
 
 export const isTokenValid = (token) => {
   if (!token) {
@@ -8,12 +8,12 @@ export const isTokenValid = (token) => {
 
   try {
     const decoded = jwtDecode(token);
-    console.log("Decoded token:", decoded); // Debug log
+    console.log("Decoded token:", decoded);
     const currentTime = Date.now() / 1000;
 
     if (decoded.exp < currentTime) {
       console.log("Token has expired");
-      return false; // Token has expired
+      return false;
     }
 
     return true;
@@ -25,7 +25,7 @@ export const isTokenValid = (token) => {
 
 export const getToken = () => {
   const token = localStorage.getItem('token');
-  console.log("Stored token:", token); // Debug log
+  console.log("Stored token:", token);
   if (isTokenValid(token)) {
     return token;
   } else {
