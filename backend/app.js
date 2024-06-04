@@ -12,9 +12,9 @@ app.use(express.json());
 app.use('/api/users', userRoutes);
 app.use('/api/matches', matchRoutes);
 
-const PORT = process.env.PORT || 3000;
-const JWT_SECRET = process.env.JWT_SECRET;
-const MONGO_URI = process.env.MONGO_URI;
+const PORT = 3002;
+const JWT_SECRET ='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9eyJzdWIiOiIyMDAzMTEyNDkzIiwibmFtZS6IkFuZHJlYXMgQm9kaW4iLCJpYXQiOjE1MTYyMzkwMjJ9.EloTxt_OYHqionAS_7Vg1PZJjtZ0_rdGJNjN_Lrh9MY';
+const MONGO_URI ='mongodb+srv://andreas:andreas@cluster0.fwvpnpz.mongodb.net/';
 
 console.log('PORT:', PORT);
 console.log('JWT_SECRET:', JWT_SECRET);
