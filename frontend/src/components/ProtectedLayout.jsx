@@ -10,11 +10,16 @@ const ProtectedLayout = ({ children }) => {
   };
 
   return (
-    <div>
-      <header style={{ display: 'flex', justifyContent: 'flex-end', padding: '10px' }}>
-        <button onClick={handleLogout}>Logout</button>
+    <div className="min-h-screen text-white">
+      <header className="flex justify-end p-4 shadow-lg">
+        <button 
+          onClick={handleLogout} 
+          className="py-2 px-4 bg-blood-red hover:bg-dark-red text-white font-bold rounded"
+        >
+          Logout
+        </button>
       </header>
-      <main>{children}</main>
+      <main className="p-8">{children}</main>
     </div>
   );
 };

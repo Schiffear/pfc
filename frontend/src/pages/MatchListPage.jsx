@@ -41,20 +41,27 @@ const MatchListPage = () => {
   };
 
   return (
-    <div>
-      <h1>Matches</h1>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      <button onClick={handleCreateMatch}>Create Match</button>
-      <div>
-        {matches.map(match => (
-          <div
-            key={match._id}
-            onClick={() => handleNavigateToMatch(match._id)}
-            style={{ border: '1px solid black', padding: '10px', margin: '10px', cursor: 'pointer' }}
-          >
-            <p>{match.user1.username} vs {match.user2 ? match.user2.username : 'Waiting for opponent'}</p>
-          </div>
-        ))}
+    <div className="min-h-screen flex items-center justify-center text-white">
+      <div className="max-w-md w-full bg-gray-900 p-8 rounded-lg shadow-2xl border border-dark-red">
+        <h1 className="text-4xl font-unifraktur mb-6 text-center">Matches</h1>
+        {error && <p className="text-red-500 mb-4">{error}</p>}
+        <button 
+          onClick={handleCreateMatch} 
+          className="w-full py-2 mb-4 bg-blood-red hover:bg-dark-red text-white font-bold rounded"
+        >
+          Create Match
+        </button>
+        <div className="space-y-4">
+          {matches.map(match => (
+            <div
+              key={match._id}
+              onClick={() => handleNavigateToMatch(match._id)}
+              className="p-4 bg-gray-800 text-white border border-blood-red rounded cursor-pointer hover:bg-gray-700"
+            >
+              <p>{match.user1.username} vs {match.user2 ? match.user2.username : 'Waiting for opponent'}</p>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
