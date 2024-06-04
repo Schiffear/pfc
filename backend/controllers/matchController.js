@@ -1,5 +1,4 @@
 const Match = require('../models/Match');
-const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 
 let matchSubscriptions = {};
@@ -26,7 +25,7 @@ const getMatches = async (req, res) => {
 
 const getMatchById = async (req, res) => {
   try {
-    const match = await Match.findById(req.params.id).populate('user1').populate('user2');
+    const match = await Match.findById(req.params.id).populate('user1').populate('user2').populate('turns.user');
     if (match) {
       res.status(200).json(match);
     } else {
@@ -40,14 +39,19 @@ const getMatchById = async (req, res) => {
 const createMatch = async (req, res) => {
   try {
     const userId = req.user.userId;
-    let match = await Match.findOne({ user1: userId, user2: null });
-    if (!match) {
-      match = new Match({ user1: userId });
-      await match.save();
-      res.status(201).json(match);
-    } else {
-      res.status(400).json({ message: 'You already have a match' });
-    }
+    const match = new Match({ user1: userId });
+    await match.save();
+
+    // Notify all subscribers about the new match
+    Object.values(matchSubscriptions).forEach(subs => {
+      subs.forEach(callback => callback({
+        type: 'MATCH_CREATED',
+        matchId: match._id,
+        payload: match
+      }));
+    });
+
+    res.status(201).json(match);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -83,6 +87,15 @@ const joinMatch = async (req, res) => {
         }));
       }
 
+      // Notify all subscribers about the updated match
+      Object.values(matchSubscriptions).forEach(subs => {
+        subs.forEach(callback => callback({
+          type: 'MATCH_UPDATED',
+          matchId: match._id,
+          payload: match
+        }));
+      });
+
       res.status(200).json(match);
     } else {
       res.status(400).json({ message: 'Cannot join match' });
@@ -98,8 +111,14 @@ const addTurn = async (req, res) => {
     const match = await Match.findById(req.params.id);
     if (match) {
       const userId = req.user.userId;
-      const turnId = req.params.idTurn;
-      match.turns.push({ move, user: userId });
+      const turnId = Math.floor(match.turns.length / 2) + 1;
+      // Check if the user has already made a move for this turn
+      const userTurn = match.turns.find(turn => turn.user.toString() === userId && turn.turnId === turnId);
+      if (userTurn) {
+        return res.status(400).json({ message: 'You have already made a move for this turn' });
+      }
+
+      match.turns.push({ move, user: userId, turnId });
       await match.save();
 
       if (matchSubscriptions[match._id]) {
@@ -109,6 +128,8 @@ const addTurn = async (req, res) => {
           payload: { turnId: match.turns.length }
         }));
 
+        const currentTurn = match.turns.length / 2;
+
         if (match.turns.length % 2 === 0) {
           // Both players have made their moves
           const lastTwoTurns = match.turns.slice(-2);
@@ -117,7 +138,7 @@ const addTurn = async (req, res) => {
           matchSubscriptions[match._id].forEach(callback => callback({
             type: 'TURN_ENDED',
             matchId: match._id,
-            payload: { newTurnId: match.turns.length / 2 + 1, winner }
+            payload: { turnId: currentTurn, winner }
           }));
 
           if (winner === 'draw' || match.turns.length === 6) {
@@ -154,7 +175,6 @@ const determineWinner = (turns) => {
   }
   return turn2.user;
 };
-
 const subscribeToMatch = [authenticateTokenForSSE, (req, res) => {
   const matchId = req.params.id;
 
@@ -177,4 +197,26 @@ const subscribeToMatch = [authenticateTokenForSSE, (req, res) => {
   });
 }];
 
-module.exports = { getMatches, getMatchById, createMatch, deleteMatch, joinMatch, addTurn, subscribeToMatch };
+const subscribeToMatches = [authenticateTokenForSSE, (req, res) => {
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+
+  const sendEvent = (event) => {
+    res.write(`data: ${JSON.stringify(event)}\n\n`);
+  };
+
+  if (!matchSubscriptions['all']) {
+    matchSubscriptions['all'] = [];
+  }
+
+  matchSubscriptions['all'].push(sendEvent);
+
+  req.on('close', () => {
+    matchSubscriptions['all'] = matchSubscriptions['all'].filter(cb => cb !== sendEvent);
+  });
+}];
+
+
+
+module.exports = { getMatches, getMatchById, createMatch, deleteMatch, joinMatch, addTurn, subscribeToMatch, subscribeToMatches };
