@@ -1,5 +1,5 @@
 const express = require('express');
-const { authenticateTokenForSSE } = require('../middleware/authenticateToken');
+const { authenticateTokenForSSE } = require('../middleware/authToken');
 const { getMatches, getMatchById, createMatch, deleteMatch, joinMatch, addTurn, subscribeToMatch, subscribeToMatches } = require('../controllers/matchController');
 
 const router = express.Router();
