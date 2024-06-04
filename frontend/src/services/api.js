@@ -29,14 +29,14 @@ export const login = async (data) => {
   localStorage.setItem('token', response.token);
   return response;
 };
-export const getMatches = () => request('/matches');
+export const getMatches = () => request('/matches', { method: 'GET' });
 export const createMatch = () => request('/matches', { method: 'POST' });
-export const getMatchById = (id) => request(`/matches/${id}`);
+export const getMatchById = (id) => request(`/matches/${id}`, { method: 'GET' });
 export const addTurn = (id, idTurn, data) => request(`/matches/${id}/turns/${idTurn}`, { method: 'POST', body: JSON.stringify(data) });
 
 export const subscribeToMatch = (id, onMessage) => {
   const token = getToken();
-  const eventSource = new EventSource(`${API_URL}/matches/${id}/subscribe?token=${encodeURIComponent(token)}`);
+  const eventSource = new EventSource(`${API_URL}/matches/${id}/subscribe`);
 
   eventSource.onmessage = (event) => {
     onMessage(JSON.parse(event.data));
